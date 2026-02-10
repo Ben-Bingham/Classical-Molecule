@@ -23,8 +23,7 @@
 using namespace RenderingUtilities;
 
 struct Rect {
-    glm::vec2 center;
-    glm::vec2 size;
+    Transform transform;
 
     glm::vec3 color;
 };
@@ -307,23 +306,26 @@ int main() {
 
                 glm::vec2 center = (end1Pos + end2Pos) / 2.0f;
 
-                Rect r{ center, glm::vec2{ spring.length, 0.3f }, glm::vec3{ 1.0f, 0.0f, 0.0f } };
+                Transform t{ glm::vec3{ center, 0.0f }, glm::vec3{ spring.length, 0.3f, 0.0f } };
+
+                Rect r{ t, glm::vec3{ 1.0f, 0.0f, 0.0f } };
                 rects.push_back(r);
             }
 
             for (const auto& pm : pointMasses) {
-                Rect r{ pm.position, glm::vec2{ 0.6f, 0.6f }, glm::vec3{ 0.0f } };
+                Transform t{ glm::vec3{ pm.position, 0.0f }, glm::vec3{ 0.6f } };
+
+                Rect r{ t, glm::vec3{ 0.0f } };
                 rects.push_back(r);
             }
 
-            for (const auto& r : rects) {
+            for (auto& r : rects) {
                 solidShader.SetVec3("color", r.color);
 
                 glm::mat4 projection = glm::perspective(glm::radians(camera.fov), (float)rendererTarget.GetSize().x / (float)rendererTarget.GetSize().y, camera.nearPlane, camera.farPlane);
                 
-                Transform t{ glm::vec3{ r.center, 0.0f }, glm::vec3{ r.size, 0.0f } };
-                t.CalculateMatrix();
-                glm::mat4 mvp = projection * camera.View() * t.matrix;
+                r.transform.CalculateMatrix();
+                glm::mat4 mvp = projection * camera.View() * r.transform.matrix;
 
                 solidShader.SetMat4("mvp", mvp);
 
