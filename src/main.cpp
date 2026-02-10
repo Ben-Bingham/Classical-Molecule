@@ -360,17 +360,21 @@ int main() {
             ImGui::Text("Springs");
             ImGui::Separator();
 
+            int i = 0;
             for (auto& spring : springs) {
-                ImGui::DragFloat("Spring Constant", &spring.k, 0.1f, 0.0f, 100.0f);
-                ImGui::DragFloat("Rest Length", &spring.restLength, 0.1f, 0.0f, 100.0f);
-                ImGui::DragFloat("Damping Coefficient", &spring.damp, 0.1f, 0.0f, 100.0f);
+                ImGui::DragFloat(std::string{ "Spring Constant##" + i }.c_str(), &spring.k, 0.1f, 0.1f, 100.0f);
+                ImGui::DragFloat(std::string{ "Rest Length##" + i }.c_str(), &spring.restLength, 0.1f, 0.1f, 100.0f);
+                ImGui::DragFloat(std::string{ "Damping Coefficient##" + i }.c_str(), &spring.damp, 0.1f, 0.1f, 100.0f);
+                ++i;
             }
 
             ImGui::Text("Point Masses");
             ImGui::Separator();
 
+            i = 0;
             for (auto& mass : pointMasses) {
-                ImGui::DragFloat("Mass", &mass.mass, 0.5f, 0.0f, 10000000000.0f);
+                ImGui::DragFloat((std::string{ "Mass##" } + std::to_string(i)).c_str(), & mass.mass, 0.5f, 0.1f, 10000000000.0f);
+                ++i;
             }
         } ImGui::End();
 
