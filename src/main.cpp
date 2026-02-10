@@ -32,6 +32,7 @@ struct Rect {
 struct PointMass {
     float mass;
     glm::vec2 position;
+    glm::vec2 velocity;
 };
 
 struct Spring {
@@ -145,13 +146,13 @@ std::vector<PointMass> pointMasses;
 std::vector<Spring> springs;
 
 int main() {
-    PointMass pm1{ 1.0f, glm::vec2{ 0.0f } };
-    PointMass pm2{ 2.0f, glm::vec2{ 5.0f, 0.0f } };
-
-    Spring spring{ 3.0f, 2.5f, 5.0f, &pm1, &pm2 };
+    PointMass pm1{ 1.0f, glm::vec2{ -5.5f, 0.0f }, glm::vec2{ 0.0f } };
+    PointMass pm2{ 2.0f, glm::vec2{ 5.5f, 0.0f }, glm::vec2{ 0.0f } };
 
     pointMasses.push_back(pm1);
     pointMasses.push_back(pm2);
+
+    Spring spring{ 2.50f, 2.5f, 7.5f, &pointMasses[0], &pointMasses[1] };
 
     springs.push_back(spring);
 
@@ -265,20 +266,26 @@ int main() {
             TimeScope physicsTimeScope{ &physicsTime };
 
             for (auto& spring : springs) {
-                float deltaX = glm::abs(spring.length - spring.restLength);
+                float deltaX = spring.length - spring.restLength;
 
                 float force = deltaX * spring.k;
 
-                std::cout << "Force: " << force << std::endl;
-
                 glm::vec2 end1ToEnd2 = spring.end1->position - spring.end2->position;
+                float springLength = glm::length(end1ToEnd2);
                 end1ToEnd2 = glm::normalize(end1ToEnd2);
 
-                glm::vec2 end1Accel = (end1ToEnd2 * force) / spring.end1->mass;
-                glm::vec2 end2Accel = (-end1ToEnd2 * force) / spring.end2->mass;
+                glm::vec2 end1Accel = (-end1ToEnd2 * force) / spring.end1->mass;
+                glm::vec2 end2Accel = (end1ToEnd2 * force) / spring.end2->mass;
 
-                spring.end1->position += 0.5f * end1Accel * dt * dt;
-                spring.end2->position += 0.5f * end2Accel * dt * dt;
+                spring.end1->velocity += end1Accel * dt;
+                spring.end2->velocity += end2Accel * dt;
+
+                spring.end1->position += spring.end1->velocity * dt;
+                spring.end2->position += spring.end2->velocity * dt;
+
+                spring.length = springLength;
+
+                std::cout << "force: " << force << std::endl;
             }
         }
 
