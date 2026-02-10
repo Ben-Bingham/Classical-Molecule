@@ -1,4 +1,4 @@
-workspace "WORKSPACE-NAME"
+workspace "ClassicalMolecule"
 	configurations { "Debug", "Release" }
 	platforms "x64"
 
@@ -12,7 +12,7 @@ workspace "WORKSPACE-NAME"
 		optimize "On"
 	filter {}
 
-	startproject "PROJECT-NAME"
+	startproject "ClassicalMolecule"
 
 	group "3rdParty"
 		include "3rdParty/ImGui"
@@ -21,7 +21,7 @@ workspace "WORKSPACE-NAME"
 		include "3rdParty/RenderingUtilities"
 	group ""
 
-project "PROJECT-NAME"
+project "ClassicalMolecule"
 	kind "ConsoleApp"
 	language "C++"
 
