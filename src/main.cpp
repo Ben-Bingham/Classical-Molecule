@@ -19,6 +19,7 @@
 #include <utility/Camera.h>
 #include <utility/TimeScope.h>
 #include <utility/Transform.h>
+#include <glm/ext/quaternion_trigonometric.hpp>
 
 using namespace RenderingUtilities;
 
@@ -145,8 +146,8 @@ std::vector<PointMass> pointMasses;
 std::vector<Spring> springs;
 
 int main() {
-    PointMass pm1{ 100000000000.0f, glm::vec2{ -5.5f, -3.0f }, glm::vec2{ 0.0f } };
-    PointMass pm2{ 2.0f, glm::vec2{ 5.5f, 3.0f }, glm::vec2{ 0.0f } };
+    PointMass pm1{ 100000000000.0f, glm::vec2{ -5.5f, -2.0f }, glm::vec2{ 0.0f } };
+    PointMass pm2{ 2.0f, glm::vec2{ 5.5f, 1.0f }, glm::vec2{ 0.0f } };
 
     pointMasses.push_back(pm1);
     pointMasses.push_back(pm2);
@@ -283,8 +284,6 @@ int main() {
                 spring.end2->position += spring.end2->velocity * dt;
 
                 spring.length = springLength;
-
-                std::cout << "force: " << force << std::endl;
             }
         }
 
@@ -306,7 +305,18 @@ int main() {
 
                 glm::vec2 center = (end1Pos + end2Pos) / 2.0f;
 
-                Transform t{ glm::vec3{ center, 0.0f }, glm::vec3{ spring.length, 0.3f, 0.0f } };
+                glm::vec2 v1 = end1Pos;
+                glm::vec2 v2 = end2Pos;
+
+                v1 = v1 - v2;
+                v2 = glm::vec2{ 1.0f, 0.0f };
+
+                v1 = glm::normalize(v1);
+                v2 = glm::normalize(v2);
+
+                float angle = glm::acos(glm::dot(v1, v2));
+
+                Transform t{ glm::vec3{ center, 0.0f }, glm::vec3{ spring.length, 0.3f, 0.0f }, glm::angleAxis(-angle, glm::vec3{ 0.0f, 0.0f, 1.0f })};
 
                 Rect r{ t, glm::vec3{ 1.0f, 0.0f, 0.0f } };
                 rects.push_back(r);
