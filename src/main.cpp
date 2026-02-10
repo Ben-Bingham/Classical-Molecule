@@ -146,13 +146,13 @@ std::vector<PointMass> pointMasses;
 std::vector<Spring> springs;
 
 int main() {
-    PointMass pm1{ 1.0f, glm::vec2{ -5.5f, 0.0f }, glm::vec2{ 0.0f } };
-    PointMass pm2{ 2.0f, glm::vec2{ 5.5f, 0.0f }, glm::vec2{ 0.0f } };
+    PointMass pm1{ 100000000000.0f, glm::vec2{ -5.5f, -3.0f }, glm::vec2{ 0.0f } };
+    PointMass pm2{ 2.0f, glm::vec2{ 5.5f, 3.0f }, glm::vec2{ 0.0f } };
 
     pointMasses.push_back(pm1);
     pointMasses.push_back(pm2);
 
-    Spring spring{ 2.50f, 2.5f, 7.5f, &pointMasses[0], &pointMasses[1] };
+    Spring spring{ 0.5f, 2.5f, 7.5f, &pointMasses[0], &pointMasses[1] };
 
     springs.push_back(spring);
 
