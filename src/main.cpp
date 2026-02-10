@@ -341,23 +341,26 @@ int main() {
             rects.clear();
 
             for (const auto& spring : springs) {
-                glm::vec2 end1Pos = spring.end1->position;
-                glm::vec2 end2Pos = spring.end2->position;
+                glm::vec3 end1Pos = spring.end1->position;
+                glm::vec3 end2Pos = spring.end2->position;
 
-                glm::vec2 center = (end1Pos + end2Pos) / 2.0f;
+                glm::vec3 center = (end1Pos + end2Pos) / 2.0f;
 
-                glm::vec2 v1 = end1Pos;
-                glm::vec2 v2 = end2Pos;
+                glm::vec3 v1 = end1Pos;
+                glm::vec3 v2 = end2Pos;
 
-                v1 = v1 - v2;
-                v2 = glm::vec2{ 1.0f, 0.0f };
+                v1 = end1Pos - end2Pos;
+                v2 = glm::vec3{ 1.0f, 0.0f, 0.0f };
 
                 v1 = glm::normalize(v1);
                 v2 = glm::normalize(v2);
 
+                glm::vec3 cross = glm::cross(v1, v2);
+                cross = glm::normalize(cross);
+
                 float angle = glm::acos(glm::dot(v1, v2));
 
-                Transform t{ glm::vec3{ center, 0.0f }, glm::vec3{ spring.length, 0.3f, 0.3f }, glm::angleAxis(-angle, glm::vec3{ 0.0f, 0.0f, 1.0f })};
+                Transform t{ center, glm::vec3{ spring.length, 0.3f, 0.3f }, glm::angleAxis(-angle, cross)};
 
                 Rect r{ t, glm::vec3{ 1.0f, 0.0f, 0.0f } };
                 rects.push_back(r);
