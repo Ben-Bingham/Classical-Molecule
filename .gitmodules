@@ -1,0 +1,9 @@
+[submodule "3rdParty/glm"]
+	path = 3rdParty/glm
+	url = https://github.com/Ben-Bingham/glm-RenderingUtilities.git
+[submodule "3rdParty/assimp"]
+	path = 3rdParty/assimp
+	url = https://github.com/Ben-Bingham/assimp-RenderingUtilities.git
+[submodule "3rdParty/RenderingUtilities"]
+	path = 3rdParty/RenderingUtilities
+	url = https://github.com/Ben-Bingham/RenderingUtilities.git
