@@ -292,6 +292,23 @@ int main() {
 
             solidShader.Bind();
             
+            rects.clear();
+
+            for (const auto& spring : springs) {
+                glm::vec2 end1Pos = spring.end1->position;
+                glm::vec2 end2Pos = spring.end2->position;
+
+                glm::vec2 center = (end1Pos + end2Pos) / 2.0f;
+
+                Rect r{ center, glm::vec2{ spring.length, 0.3f }, glm::vec3{ 1.0f, 0.0f, 0.0f } };
+                rects.push_back(r);
+            }
+
+            for (const auto& pm : pointMasses) {
+                Rect r{ pm.position, glm::vec2{ 0.6f, 0.6f }, glm::vec3{ 0.0f } };
+                rects.push_back(r);
+            }
+
             for (const auto& r : rects) {
                 solidShader.SetVec3("color", r.color);
 
