@@ -155,11 +155,13 @@ int main() {
     pointMasses.push_back(pm2);
     pointMasses.push_back(pm3);
 
-    Spring spring1{ 0.5f, 2.5f, 7.5f, 0.1f, &pointMasses[0], &pointMasses[1] };
-    Spring spring2{ 0.5f, 2.5f, 7.5f, 0.1f, &pointMasses[1], &pointMasses[2] };
+    Spring spring1{ 0.5f, 2.5f, 5.0f, 0.1f, &pointMasses[0], &pointMasses[1] };
+    Spring spring2{ 0.5f, 2.5f, 6.5f, 0.1f, &pointMasses[1], &pointMasses[2] };
+    Spring spring3{ 0.5f, 2.5f, 3.5f, 0.1f, &pointMasses[0], &pointMasses[2] };
 
     springs.push_back(spring1);
     springs.push_back(spring2);
+    springs.push_back(spring3);
 
     glfwSetErrorCallback(glfwErrorCallback);
 
