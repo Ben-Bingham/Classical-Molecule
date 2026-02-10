@@ -29,6 +29,19 @@ struct Rect {
     glm::vec3 color;
 };
 
+struct PointMass {
+    float mass;
+    glm::vec2 position;
+};
+
+struct Spring {
+    float k;
+    float length;
+
+    PointMass* end1;
+    PointMass* end2;
+};
+
 void glfwErrorCallback(int error, const char* description) {
     std::cout << "ERROR: GLFW has thrown an error: " << std::endl;
     std::cout << description << std::endl;
@@ -225,6 +238,7 @@ int main() {
 
     std::chrono::duration<double> frameTime{ };
     std::chrono::duration<double> renderTime{ };
+    std::chrono::duration<double> physicsTime{ };
 
     bool mouseOverViewPort{ false };
     glm::ivec2 viewportOffset{ 0, 0 };
@@ -237,6 +251,12 @@ int main() {
         glm::ivec2 mousePositionWRTViewport{ mousePosition.x - viewportOffset.x, lastFrameViewportSize.y - (viewportOffset.y - mousePosition.y) };
 
         MoveCamera(camera, window, static_cast<float>(frameTime.count()), mousePositionWRTViewport, lastFrameViewportSize, mouseOverViewPort);
+
+        {
+            TimeScope physicsTimeScope{ &physicsTime };
+
+
+        }
 
         {
             TimeScope renderingTimeScope{ &renderTime };
