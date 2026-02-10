@@ -38,7 +38,7 @@ struct PointMass {
 struct Spring {
     float k;
     float length;
-    const float restLength;
+    float restLength;
     float damp;
 
     PointMass* end1;
@@ -147,7 +147,7 @@ std::vector<PointMass> pointMasses;
 std::vector<Spring> springs;
 
 int main() {
-    PointMass pm1{ 100000000000.0f, glm::vec2{ -5.5f, -2.0f }, glm::vec2{ 0.0f } };
+    PointMass pm1{ 10.0f, glm::vec2{ -4.5f, -2.0f }, glm::vec2{ 0.0f } };
     PointMass pm2{ 2.0f, glm::vec2{ 5.5f, 1.0f }, glm::vec2{ 0.0f } };
 
     pointMasses.push_back(pm1);
@@ -355,6 +355,24 @@ int main() {
         //ImGui::ShowMetricsWindow();
 
         ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
+
+        { ImGui::Begin("Scene");
+            ImGui::Text("Springs");
+            ImGui::Separator();
+
+            for (auto& spring : springs) {
+                ImGui::DragFloat("Spring Constant", &spring.k, 0.1f, 0.0f, 100.0f);
+                ImGui::DragFloat("Rest Length", &spring.restLength, 0.1f, 0.0f, 100.0f);
+                ImGui::DragFloat("Damping Coefficient", &spring.damp, 0.1f, 0.0f, 100.0f);
+            }
+
+            ImGui::Text("Point Masses");
+            ImGui::Separator();
+
+            for (auto& mass : pointMasses) {
+                ImGui::DragFloat("Mass", &mass.mass, 0.5f, 0.0f, 10000000000.0f);
+            }
+        } ImGui::End();
 
         glm::ivec2 newViewportSize{ };
 
