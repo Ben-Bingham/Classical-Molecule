@@ -31,8 +31,8 @@ struct Rect {
 
 struct PointMass {
     float mass;
-    glm::vec2 position;
-    glm::vec2 velocity;
+    glm::vec3 position;
+    glm::vec3 velocity;
 };
 
 struct Spring {
@@ -147,8 +147,8 @@ std::vector<PointMass> pointMasses;
 std::vector<Spring> springs;
 
 int main() {
-    PointMass pm1{ 10.0f, glm::vec2{ -4.5f, -2.0f }, glm::vec2{ 0.0f } };
-    PointMass pm2{ 2.0f, glm::vec2{ 5.5f, 1.0f }, glm::vec2{ 0.0f } };
+    PointMass pm1{ 10.0f, glm::vec3{ -4.5f, -2.0f, 1.0f }, glm::vec3{ 0.0f } };
+    PointMass pm2{ 2.0f, glm::vec3{ 5.5f, 1.0f, -3.0f }, glm::vec3{ 0.0f } };
 
     pointMasses.push_back(pm1);
     pointMasses.push_back(pm2);
@@ -216,17 +216,55 @@ int main() {
 
     // TODO remove uv and normal
     VertexBufferObject vbo{ std::vector<float>{
-        -0.5f, -0.5f, 0.0f,     0.0f, 0.0f, 1.0f,     0.0f, 0.0f,
-        -0.5f,  0.5f, 0.0f,     0.0f, 0.0f, 1.0f,     0.0f, 0.0f,
-         0.5f, -0.5f, 0.0f,     0.0f, 0.0f, 1.0f,     0.0f, 0.0f,
-        -0.5f,  0.5f, 0.0f,     0.0f, 0.0f, 1.0f,     0.0f, 0.0f,
-         0.5f,  0.5f, 0.0f,     0.0f, 0.0f, 1.0f,     0.0f, 0.0f,
-         0.5f, -0.5f, 0.0f,     0.0f, 0.0f, 1.0f,     0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f,  0.0f, -1.0f, 0.0f, 0.0f,
+         0.5f, -0.5f, -0.5f, 0.0f,  0.0f, -1.0f, 1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f, 0.0f,  0.0f, -1.0f, 1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f, 0.0f,  0.0f, -1.0f, 0.0f, 1.0f,
+                                                 
+        -0.5f, -0.5f,  0.5f, 0.0f,  0.0f,  1.0f, 0.0f, 0.0f,
+         0.5f, -0.5f,  0.5f, 0.0f,  0.0f,  1.0f, 1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f, 0.0f,  0.0f,  1.0f, 1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f, 0.0f,  0.0f,  1.0f, 0.0f, 1.0f,
+                                                 
+        -0.5f,  0.5f,  0.5f, 1.0f,  0.0f,  0.0f, 1.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f, 1.0f,  0.0f,  0.0f, 1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, 1.0f,  0.0f,  0.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f, 1.0f,  0.0f,  0.0f, 0.0f, 0.0f,
+                                                 
+         0.5f,  0.5f,  0.5f, 1.0f,  0.0f,  0.0f, 1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f, 1.0f,  0.0f,  0.0f, 1.0f, 1.0f,
+         0.5f, -0.5f, -0.5f, 1.0f,  0.0f,  0.0f, 0.0f, 1.0f,
+         0.5f, -0.5f,  0.5f, 1.0f,  0.0f,  0.0f, 0.0f, 0.0f,
+                                                 
+        -0.5f, -0.5f, -0.5f, 0.0f, -1.0f,  0.0f, 0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f, 0.0f, -1.0f,  0.0f, 1.0f, 1.0f,
+         0.5f, -0.5f,  0.5f, 0.0f, -1.0f,  0.0f, 1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f, 0.0f, -1.0f,  0.0f, 0.0f, 0.0f,
+                                                 
+        -0.5f,  0.5f, -0.5f, 0.0f,  1.0f,  0.0f, 0.0f, 1.0f,
+         0.5f,  0.5f, -0.5f, 0.0f,  1.0f,  0.0f, 1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f, 0.0f,  1.0f,  0.0f, 1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f, 0.0f,  1.0f,  0.0f, 0.0f, 0.0f
     } };
 
     ElementBufferObject ebo{ std::vector<unsigned int>{
-        2, 1, 0,
-        5, 4, 3
+        2,  1,  0,
+        0,  3,  2,
+
+        4,  5,  6,
+        6,  7,  4,
+
+        8,  9, 10,
+        10, 11,  8,
+
+        14, 13, 12,
+        12, 15, 14,
+
+        16, 17, 18,
+        18, 19, 16,
+
+        22, 21, 20,
+        20, 23, 22,
     } };
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
@@ -254,6 +292,8 @@ int main() {
 
     float dt = 1.0f / 60.0f;
 
+    glEnable(GL_DEPTH_TEST);
+
     while (!glfwWindowShouldClose(window)) {
         TimeScope frameTimeScope{ &frameTime };
 
@@ -271,12 +311,12 @@ int main() {
 
                 float force = deltaX * spring.k;
 
-                glm::vec2 end1ToEnd2 = spring.end1->position - spring.end2->position;
+                glm::vec3 end1ToEnd2 = spring.end1->position - spring.end2->position;
                 float springLength = glm::length(end1ToEnd2);
                 end1ToEnd2 = glm::normalize(end1ToEnd2);
 
-                glm::vec2 end1Accel = (-end1ToEnd2 * force - spring.end1->velocity * spring.damp) / spring.end1->mass;
-                glm::vec2 end2Accel = ( end1ToEnd2 * force - spring.end2->velocity * spring.damp) / spring.end2->mass;
+                glm::vec3 end1Accel = (-end1ToEnd2 * force - spring.end1->velocity * spring.damp) / spring.end1->mass;
+                glm::vec3 end2Accel = ( end1ToEnd2 * force - spring.end2->velocity * spring.damp) / spring.end2->mass;
 
                 spring.end1->velocity += end1Accel * dt;
                 spring.end2->velocity += end2Accel * dt;
@@ -317,14 +357,14 @@ int main() {
 
                 float angle = glm::acos(glm::dot(v1, v2));
 
-                Transform t{ glm::vec3{ center, 0.0f }, glm::vec3{ spring.length, 0.3f, 0.0f }, glm::angleAxis(-angle, glm::vec3{ 0.0f, 0.0f, 1.0f })};
+                Transform t{ glm::vec3{ center, 0.0f }, glm::vec3{ spring.length, 0.3f, 0.3f }, glm::angleAxis(-angle, glm::vec3{ 0.0f, 0.0f, 1.0f })};
 
                 Rect r{ t, glm::vec3{ 1.0f, 0.0f, 0.0f } };
                 rects.push_back(r);
             }
 
             for (const auto& pm : pointMasses) {
-                Transform t{ glm::vec3{ pm.position, 0.0f }, glm::vec3{ 0.6f } };
+                Transform t{ pm.position, glm::vec3{ 0.6f } };
 
                 Rect r{ t, glm::vec3{ 0.0f } };
                 rects.push_back(r);
@@ -341,7 +381,7 @@ int main() {
                 solidShader.SetMat4("mvp", mvp);
 
                 vao.Bind();
-                glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+                glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
             }
 
             rendererTarget.Unbind();
