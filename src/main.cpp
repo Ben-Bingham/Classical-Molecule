@@ -20,6 +20,7 @@
 #include <utility/TimeScope.h>
 #include <utility/Transform.h>
 #include <glm/ext/quaternion_trigonometric.hpp>
+#include <thread>
 
 using namespace RenderingUtilities;
 
@@ -148,37 +149,42 @@ void MoveCamera(Camera& camera, GLFWwindow* window, float dt, const glm::ivec2& 
     }
 }
 
-std::vector<Rect> rects;
-std::vector<PointMass> pointMasses;
-std::vector<Spring> springs;
-std::vector<PointCharge> pointCharges;
-std::vector<Nucleon> nucleons;
+struct PhysicsState {
+    std::vector<PointMass> pointMasses;
+    std::vector<Spring> springs;
+    std::vector<PointCharge> pointCharges;
+    std::vector<Nucleon> nucleons;
+} physicsState;
+
+struct RenderState {
+    std::vector<Rect> rects;
+} renderState;
 
 void ClearScene() {
-    rects.clear();
-    pointMasses.clear();
-    springs.clear();
-    pointCharges.clear();
-    nucleons.clear();
+    renderState.rects.clear();
+    physicsState.pointMasses.clear();
+    physicsState.springs.clear();
+    physicsState.pointCharges.clear();
+    physicsState.nucleons.clear();
 }
 
 void AddToScene(int neutronCount, int protonCount, int electronCount) {
     for (int i = 0; i < neutronCount; ++i) {
         Nucleon n{ 200.0f, glm::vec3{ (float)i, 0.0f, 0.0f }, glm::vec3{ 0.0f }, 0.0f };
 
-        nucleons.push_back(n);
+        physicsState.nucleons.push_back(n);
     }
 
     for (int i = 0; i < protonCount; ++i) {
         Nucleon p{ 200.0f, glm::vec3{ (float)i, 1.0f, 0.0f}, glm::vec3{ 0.0f }, 1.0f };
 
-        nucleons.push_back(p);
+        physicsState.nucleons.push_back(p);
     }
 
     for (int i = 0; i < electronCount; ++i) {
         PointCharge e{ 0.1f, glm::vec3{ (float)i, -1.0f, -2.0f }, glm::vec3{ 0.0f }, -1.0f };
 
-        pointCharges.push_back(e);
+        physicsState.pointCharges.push_back(e);
     }
 }
 
@@ -188,8 +194,8 @@ int main() {
         Nucleon p{ 200.0f, glm::vec3{ (float)i, 0.0f, 0.0f}, glm::vec3{ 0.0f }, 1.0f};
         Nucleon n{ 200.0f, glm::vec3{ (float)i, 1.0f, 0.0f }, glm::vec3{ 0.0f }, 0.0f };
 
-        nucleons.push_back(p);
-        nucleons.push_back(n);
+        physicsState.nucleons.push_back(p);
+        physicsState.nucleons.push_back(n);
     }
 
     // Helium+ Ion
@@ -222,25 +228,25 @@ int main() {
     //PointCharge pc1{ 1.0f, glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 0.0f }, 10.0f };
     //PointCharge pc2{ 1.0f, glm::vec3{ 2.0f, 2.0f, 2.0f }, glm::vec3{ 2.0f, 0.0f, 0.0f }, -1.0f };
 
-    //pointCharges.push_back(pc1);
-    //pointCharges.push_back(pc2);
+    //physicsState.pointCharges.push_back(pc1);
+    //physicsState.pointCharges.push_back(pc2);
 
     // 3 point masses bound by springs
     //PointMass pm1{ 10.0f, glm::vec3{ -4.5f, -2.0f, 1.0f }, glm::vec3{ 0.0f } };
     //PointMass pm2{ 2.0f, glm::vec3{ 5.5f, 1.0f, -3.0f }, glm::vec3{ 0.0f } };
     //PointMass pm3{ 4.0f, glm::vec3{ 3.0f, -5.0f, -6.0f }, glm::vec3{ 0.0f } };
 
-    //pointMasses.push_back(pm1);
-    //pointMasses.push_back(pm2);
-    //pointMasses.push_back(pm3);
+    //physicsState.pointMasses.push_back(pm1);
+    //physicsState.pointMasses.push_back(pm2);
+    //physicsState.pointMasses.push_back(pm3);
 
-    //Spring spring1{ 0.5f, 2.5f, 5.0f, 0.1f, &pointMasses[0], &pointMasses[1] };
-    //Spring spring2{ 0.5f, 2.5f, 6.5f, 0.1f, &pointMasses[1], &pointMasses[2] };
-    //Spring spring3{ 0.5f, 2.5f, 3.5f, 0.1f, &pointMasses[0], &pointMasses[2] };
+    //Spring spring1{ 0.5f, 2.5f, 5.0f, 0.1f, &physicsState.pointMasses[0], &physicsState.pointMasses[1] };
+    //Spring spring2{ 0.5f, 2.5f, 6.5f, 0.1f, &physicsState.pointMasses[1], &physicsState.pointMasses[2] };
+    //Spring spring3{ 0.5f, 2.5f, 3.5f, 0.1f, &physicsState.pointMasses[0], &physicsState.pointMasses[2] };
 
-    //springs.push_back(spring1);
-    //springs.push_back(spring2);
-    //springs.push_back(spring3);
+    //physicsState.springs.push_back(spring1);
+    //physicsState.springs.push_back(spring2);
+    //physicsState.springs.push_back(spring3);
 
     // Web of point masses
     //int n = 4;
@@ -404,6 +410,12 @@ int main() {
     glm::ivec2 viewportOffset{ 0, 0 };
 
     glEnable(GL_DEPTH_TEST);
+    glfwSwapInterval(1);
+
+    const size_t physicsStateQueueSize = 4;
+    std::array<PhysicsState, physicsStateQueueSize> physicsStateQueue;
+    physicsStateQueue[0] = physicsState;
+    int mostRecentPhysicsState = 0;
 
     int newSceneProtonCount = 2;
     int newSceneNeutronCount = 2;
@@ -411,21 +423,17 @@ int main() {
 
     float timeMultiplier = 1.0f;
 
-    while (!glfwWindowShouldClose(window)) {
-        TimeScope frameTimeScope{ &frameTime };
+    float dt = 1.0f / 1000.0f;
 
-        float dt = frameTime.count() * timeMultiplier;
+    bool closePhysicsThread = false;
 
-        glfwPollEvents();
-
-        glm::ivec2 mousePositionWRTViewport{ mousePosition.x - viewportOffset.x, lastFrameViewportSize.y - (viewportOffset.y - mousePosition.y) };
-
-        MoveCamera(camera, window, static_cast<float>(frameTime.count()), mousePositionWRTViewport, lastFrameViewportSize, mouseOverViewPort);
-
-        {
+    std::thread physicsThread{ [&]() {
+        while (!closePhysicsThread) {
             TimeScope physicsTimeScope{ &physicsTime };
 
-            for (auto& spring : springs) {
+            PhysicsState state = physicsStateQueue[mostRecentPhysicsState];
+
+            for (auto& spring : state.springs) {
                 float deltaX = spring.length - spring.restLength;
 
                 float force = deltaX * spring.k;
@@ -435,7 +443,7 @@ int main() {
                 end1ToEnd2 = glm::normalize(end1ToEnd2);
 
                 glm::vec3 end1Accel = (-end1ToEnd2 * force - spring.end1->velocity * spring.damp) / spring.end1->mass;
-                glm::vec3 end2Accel = ( end1ToEnd2 * force - spring.end2->velocity * spring.damp) / spring.end2->mass;
+                glm::vec3 end2Accel = (end1ToEnd2 * force - spring.end2->velocity * spring.damp) / spring.end2->mass;
 
                 spring.end1->velocity += end1Accel * dt;
                 spring.end2->velocity += end2Accel * dt;
@@ -448,11 +456,11 @@ int main() {
 
             std::vector<PointCharge*> chargedParticles{ };
 
-            for (auto& pc : pointCharges) {
+            for (auto& pc : state.pointCharges) {
                 chargedParticles.push_back(&pc);
             }
 
-            for (auto& n : nucleons) {
+            for (auto& n : state.nucleons) {
                 if (n.charge == 0.0f) continue;
 
                 chargedParticles.push_back(&n);
@@ -477,16 +485,16 @@ int main() {
                 }
             }
 
-            for (auto& c : pointCharges) {
+            for (auto& c : state.pointCharges) {
                 c.position += c.velocity * dt;
             }
 
-            for (int i = 0; i < nucleons.size(); ++i) {
-                for (int j = 0; j < nucleons.size(); ++j) {
+            for (int i = 0; i < state.nucleons.size(); ++i) {
+                for (int j = 0; j < state.nucleons.size(); ++j) {
                     if (i == j) continue;
 
-                    PointCharge& n1 = nucleons[i];
-                    PointCharge& n2 = nucleons[j];
+                    PointCharge& n1 = state.nucleons[i];
+                    PointCharge& n2 = state.nucleons[j];
 
                     float distance = glm::distance(n1.position, n2.position);
 
@@ -511,13 +519,31 @@ int main() {
                 }
             }
 
-            for (auto& n : nucleons) {
+            for (auto& n : state.nucleons) {
                 n.position += n.velocity * dt;
             }
+
+            ++mostRecentPhysicsState;
+            mostRecentPhysicsState %= physicsStateQueueSize;
+            physicsStateQueue[mostRecentPhysicsState] = state;
+
+            dt = physicsTime.count() * timeMultiplier;
         }
+    } };
+
+    while (!glfwWindowShouldClose(window)) {
+        TimeScope frameTimeScope{ &frameTime };
+
+        glfwPollEvents();
+
+        glm::ivec2 mousePositionWRTViewport{ mousePosition.x - viewportOffset.x, lastFrameViewportSize.y - (viewportOffset.y - mousePosition.y) };
+
+        MoveCamera(camera, window, static_cast<float>(frameTime.count()), mousePositionWRTViewport, lastFrameViewportSize, mouseOverViewPort);
 
         {
             TimeScope renderingTimeScope{ &renderTime };
+
+            PhysicsState physState = physicsStateQueue[mostRecentPhysicsState];
 
             rendererTarget.Bind();
 
@@ -526,9 +552,9 @@ int main() {
 
             solidShader.Bind();
             
-            rects.clear();
+            renderState.rects.clear();
 
-            for (const auto& spring : springs) {
+            for (const auto& spring : physState.springs) {
                 glm::vec3 end1Pos = spring.end1->position;
                 glm::vec3 end2Pos = spring.end2->position;
 
@@ -551,17 +577,17 @@ int main() {
                 Transform t{ center, glm::vec3{ spring.length, 0.3f, 0.3f }, glm::angleAxis(-angle, cross)};
 
                 Rect r{ t, glm::vec3{ 1.0f, 0.0f, 0.0f } };
-                rects.push_back(r);
+                renderState.rects.push_back(r);
             }
 
-            for (const auto& pm : pointMasses) {
+            for (const auto& pm : physState.pointMasses) {
                 Transform t{ pm.position, glm::vec3{ 0.6f } };
 
                 Rect r{ t, glm::vec3{ 0.0f } };
-                rects.push_back(r);
+                renderState.rects.push_back(r);
             }
 
-            for (const auto& pc : pointCharges) {
+            for (const auto& pc : physState.pointCharges) {
                 Transform t{ pc.position, glm::vec3{ 0.4f } };
 
                 glm::vec3 color;
@@ -570,10 +596,10 @@ int main() {
                 else { color = glm::vec3{ 1.0f, 0.0f, 0.0f }; }
 
                 Rect r{ t, color };
-                rects.push_back(r);
+                renderState.rects.push_back(r);
             }
 
-            for (const auto& n : nucleons) {
+            for (const auto& n : physState.nucleons) {
                 Transform t{ n.position, glm::vec3{ 0.5f } };
 
                 glm::vec3 color;
@@ -583,10 +609,10 @@ int main() {
                 else { color = glm::vec3{ 1.0f, 0.0f, 1.0f }; }
 
                 Rect r{ t, color };
-                rects.push_back(r);
+                renderState.rects.push_back(r);
             }
 
-            for (auto& r : rects) {
+            for (auto& r : renderState.rects) {
                 solidShader.SetVec3("color", r.color);
 
                 glm::mat4 projection = glm::perspective(glm::radians(camera.fov), (float)rendererTarget.GetSize().x / (float)rendererTarget.GetSize().y, camera.nearPlane, camera.farPlane);
@@ -613,6 +639,14 @@ int main() {
         ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
 
         { ImGui::Begin("Scene");
+            float frameRate = 1.0f / frameTime.count();
+            float physicsFrameRate = 1.0f / physicsTime.count();
+
+            ImGui::Text("Total Framerate: %10.2f", frameRate);
+            ImGui::Text("Physics Framerate: %10.2f", physicsFrameRate);
+
+            ImGui::Separator();
+
             ImGui::DragFloat("Time Multiplier", &timeMultiplier, 0.001f, 0.0000f, 1000.0f);
 
             ImGui::Separator();
@@ -662,6 +696,9 @@ int main() {
 
         glfwSwapBuffers(window);
     }
+
+    closePhysicsThread = true;
+    physicsThread.join();
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
