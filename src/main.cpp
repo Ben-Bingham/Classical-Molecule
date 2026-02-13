@@ -176,7 +176,6 @@ int main() {
     //nucleons.push_back(n2);
 
     //PointCharge e1{ 0.1f, glm::vec3{ -2.0f, -2.0f, -2.0f }, glm::vec3{ -2.0f, 0.0f, 0.0f }, -1.0f };
-    //PointCharge e2{ 0.1f, glm::vec3{ 2.0f, 2.0f, 2.0f }, glm::vec3{ 2.0f, 0.0f, 0.0f }, -1.0f };
 
     //pointCharges.push_back(e1);
 
@@ -251,7 +250,7 @@ int main() {
 
     glm::ivec2 windowSize{ 1600, 900 };
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
-    GLFWwindow* window = glfwCreateWindow(windowSize.x, windowSize.y, "Rutile", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(windowSize.x, windowSize.y, "Classical Molecule", nullptr, nullptr);
 
     if (!window) {
         std::cout << "ERROR: Failed to create window." << std::endl;
