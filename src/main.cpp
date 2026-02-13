@@ -410,6 +410,11 @@ int main() {
 
     glEnable(GL_DEPTH_TEST);
 
+    const size_t physicsStateQueueSize = 4;
+    std::array<PhysicsState, physicsStateQueueSize> physicsStateQueue;
+    physicsStateQueue[0] = physicsState;
+    int mostRecentPhysicsState = 0;
+
     int newSceneProtonCount = 2;
     int newSceneNeutronCount = 2;
     int newSceneElectronCount = 1;
@@ -519,10 +524,16 @@ int main() {
             for (auto& n : physicsState.nucleons) {
                 n.position += n.velocity * dt;
             }
+
+            ++mostRecentPhysicsState;
+            mostRecentPhysicsState %= physicsStateQueueSize;
+            physicsStateQueue[mostRecentPhysicsState] = physicsState;
         }
 
         {
             TimeScope renderingTimeScope{ &renderTime };
+
+            PhysicsState physState = physicsStateQueue[mostRecentPhysicsState];
 
             rendererTarget.Bind();
 
@@ -533,7 +544,7 @@ int main() {
             
             renderState.rects.clear();
 
-            for (const auto& spring : physicsState.springs) {
+            for (const auto& spring : physState.springs) {
                 glm::vec3 end1Pos = spring.end1->position;
                 glm::vec3 end2Pos = spring.end2->position;
 
@@ -559,14 +570,14 @@ int main() {
                 renderState.rects.push_back(r);
             }
 
-            for (const auto& pm : physicsState.pointMasses) {
+            for (const auto& pm : physState.pointMasses) {
                 Transform t{ pm.position, glm::vec3{ 0.6f } };
 
                 Rect r{ t, glm::vec3{ 0.0f } };
                 renderState.rects.push_back(r);
             }
 
-            for (const auto& pc : physicsState.pointCharges) {
+            for (const auto& pc : physState.pointCharges) {
                 Transform t{ pc.position, glm::vec3{ 0.4f } };
 
                 glm::vec3 color;
@@ -578,7 +589,7 @@ int main() {
                 renderState.rects.push_back(r);
             }
 
-            for (const auto& n : physicsState.nucleons) {
+            for (const auto& n : physState.nucleons) {
                 Transform t{ n.position, glm::vec3{ 0.5f } };
 
                 glm::vec3 color;
