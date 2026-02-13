@@ -154,6 +154,34 @@ std::vector<Spring> springs;
 std::vector<PointCharge> pointCharges;
 std::vector<Nucleon> nucleons;
 
+void ClearScene() {
+    rects.clear();
+    pointMasses.clear();
+    springs.clear();
+    pointCharges.clear();
+    nucleons.clear();
+}
+
+void AddToScene(int neutronCount, int protonCount, int electronCount) {
+    for (int i = 0; i < neutronCount; ++i) {
+        Nucleon n{ 200.0f, glm::vec3{ (float)i, 0.0f, 0.0f }, glm::vec3{ 0.0f }, 0.0f };
+
+        nucleons.push_back(n);
+    }
+
+    for (int i = 0; i < protonCount; ++i) {
+        Nucleon p{ 200.0f, glm::vec3{ (float)i, 1.0f, 0.0f}, glm::vec3{ 0.0f }, 1.0f };
+
+        nucleons.push_back(p);
+    }
+
+    for (int i = 0; i < electronCount; ++i) {
+        PointCharge e{ 0.1f, glm::vec3{ (float)i, -1.0f, -2.0f }, glm::vec3{ 0.0f }, -1.0f };
+
+        pointCharges.push_back(e);
+    }
+}
+
 int main() {
     // Carbon Nucleus
     for (int i = 0; i < 6; ++i) {
@@ -379,6 +407,10 @@ int main() {
 
     glEnable(GL_DEPTH_TEST);
 
+    int newSceneProtonCount = 2;
+    int newSceneNeutronCount = 2;
+    int newSceneElectronCount = 1;
+
     while (!glfwWindowShouldClose(window)) {
         TimeScope frameTimeScope{ &frameTime };
 
@@ -579,25 +611,13 @@ int main() {
         ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
 
         { ImGui::Begin("Scene");
-            ImGui::Text("Springs");
-            ImGui::Separator();
+            if (ImGui::Button("Clear")) ClearScene();
 
-            int i = 0;
-            for (auto& spring : springs) {
-                ImGui::DragFloat((std::string{ "Spring Constant##" } + std::to_string(i)).c_str(), &spring.k, 0.1f, 0.1f, 100.0f);
-                ImGui::DragFloat((std::string{ "Rest Length##" } + std::to_string(i)).c_str(), &spring.restLength, 0.1f, 0.1f, 100.0f);
-                ImGui::DragFloat((std::string{ "Damping Coefficient##" } + std::to_string(i)).c_str(), &spring.damp, 0.1f, 0.1f, 100.0f);
-                ++i;
-            }
+            ImGui::DragInt("Protons", &newSceneProtonCount, 0.1f, 0, 100);
+            ImGui::DragInt("Neutrons", &newSceneNeutronCount, 0.1f, 0, 100);
+            ImGui::DragInt("Electrons", &newSceneElectronCount, 0.1f, 0, 100);
 
-            ImGui::Text("Point Masses");
-            ImGui::Separator();
-
-            i = 0;
-            for (auto& mass : pointMasses) {
-                ImGui::DragFloat((std::string{ "Mass##" } + std::to_string(i)).c_str(), & mass.mass, 0.5f, 0.1f, 10000000000.0f);
-                ++i;
-            }
+            if (ImGui::Button("Add")) AddToScene(newSceneNeutronCount, newSceneProtonCount, newSceneElectronCount);
         } ImGui::End();
 
         glm::ivec2 newViewportSize{ };
