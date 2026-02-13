@@ -155,21 +155,30 @@ std::vector<PointCharge> pointCharges;
 std::vector<Nucleon> nucleons;
 
 int main() {
+    // Carbon Nucleus
+    for (int i = 0; i < 6; ++i) {
+        Nucleon p{ 200.0f, glm::vec3{ (float)i, 0.0f, 0.0f}, glm::vec3{ 0.0f }, 1.0f};
+        Nucleon n{ 200.0f, glm::vec3{ (float)i, 1.0f, 0.0f }, glm::vec3{ 0.0f }, 0.0f };
+
+        nucleons.push_back(p);
+        nucleons.push_back(n);
+    }
+
     // Helium+ Ion
-    Nucleon p1{ 200.0f, glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f }, 1.0f };
-    Nucleon p2{ 200.0f, glm::vec3{ 1.0f, 1.0f, 0.0f }, glm::vec3{ 0.0f }, 1.0f };
-    Nucleon n1{ 200.0f, glm::vec3{ 0.0f, 1.0f, 0.0f }, glm::vec3{ 0.0f }, 0.0f };
-    Nucleon n2{ 200.0f, glm::vec3{ 1.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f }, 0.0f };
+    //Nucleon p1{ 200.0f, glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f }, 1.0f };
+    //Nucleon p2{ 200.0f, glm::vec3{ 1.0f, 1.0f, 0.0f }, glm::vec3{ 0.0f }, 1.0f };
+    //Nucleon n1{ 200.0f, glm::vec3{ 0.0f, 1.0f, 0.0f }, glm::vec3{ 0.0f }, 0.0f };
+    //Nucleon n2{ 200.0f, glm::vec3{ 1.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f }, 0.0f };
 
-    nucleons.push_back(p1);
-    nucleons.push_back(p2);
-    nucleons.push_back(n1);
-    nucleons.push_back(n2);
+    //nucleons.push_back(p1);
+    //nucleons.push_back(p2);
+    //nucleons.push_back(n1);
+    //nucleons.push_back(n2);
 
-    PointCharge e1{ 0.1f, glm::vec3{ -2.0f, -2.0f, -2.0f }, glm::vec3{ -2.0f, 0.0f, 0.0f }, -1.0f };
-    PointCharge e2{ 0.1f, glm::vec3{ 2.0f, 2.0f, 2.0f }, glm::vec3{ 2.0f, 0.0f, 0.0f }, -1.0f };
+    //PointCharge e1{ 0.1f, glm::vec3{ -2.0f, -2.0f, -2.0f }, glm::vec3{ -2.0f, 0.0f, 0.0f }, -1.0f };
+    //PointCharge e2{ 0.1f, glm::vec3{ 2.0f, 2.0f, 2.0f }, glm::vec3{ 2.0f, 0.0f, 0.0f }, -1.0f };
 
-    pointCharges.push_back(e1);
+    //pointCharges.push_back(e1);
 
     // Alpha Particle
     //Nucleon p1{ 1.0f, glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f }, 1.0f };
