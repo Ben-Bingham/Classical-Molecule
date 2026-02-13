@@ -160,23 +160,49 @@ struct RenderState {
     std::vector<Rect> rects;
 } renderState;
 
+glm::vec3 NextPosition(int index, int max) {
+    float s = glm::pow(max, 1.0f / 3.0f);
+    int size = (int)glm::ceil(s);
+
+    int x = index / (size * size);
+    int y = (index / size) % size;
+    int z = index % size;
+
+    return glm::vec3{ (float)x, (float)y, (float)z };
+}
+
 void AddToState(int neutronCount, int protonCount, int electronCount) {
-    for (int i = 0; i < neutronCount; ++i) {
-        Nucleon n{ 200.0f, glm::vec3{ (float)i, 0.0f, 0.0f }, glm::vec3{ 0.0f }, 0.0f };
+    int max = neutronCount + protonCount + electronCount;
+    int j = 0;
 
-        physicsState.nucleons.push_back(n);
-    }
+    int neutronLeft = neutronCount;
+    int protonLeft = protonCount;
+    int electronLeft = electronCount;
 
-    for (int i = 0; i < protonCount; ++i) {
-        Nucleon p{ 200.0f, glm::vec3{ (float)i, 1.0f, 0.0f}, glm::vec3{ 0.0f }, 1.0f };
+    while (neutronLeft != 0 || protonLeft != 0 || electronLeft != 0) {
+        if (neutronLeft > 0) {
+            Nucleon n{ 200.0f, NextPosition(j, max), glm::vec3{ 0.0f }, 0.0f };
 
-        physicsState.nucleons.push_back(p);
-    }
+            physicsState.nucleons.push_back(n);
+            ++j;
+            --neutronLeft;
+        }
 
-    for (int i = 0; i < electronCount; ++i) {
-        PointCharge e{ 0.1f, glm::vec3{ (float)i, -1.0f, -2.0f }, glm::vec3{ 0.0f }, -1.0f };
+        if (protonLeft > 0) {
+            Nucleon p{ 200.0f, NextPosition(j, max), glm::vec3{ 0.0f }, 1.0f };
 
-        physicsState.pointCharges.push_back(e);
+            physicsState.nucleons.push_back(p);
+            ++j;
+            --protonLeft;
+        }
+
+        if (electronLeft > 0) {
+            PointCharge e{ 0.1f, NextPosition(j, max), glm::vec3{ 0.0f }, -1.0f };
+
+            physicsState.pointCharges.push_back(e);
+            ++j;
+            --electronLeft;
+        }
     }
 }
 
