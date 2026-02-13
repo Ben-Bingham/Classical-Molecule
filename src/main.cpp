@@ -160,15 +160,7 @@ struct RenderState {
     std::vector<Rect> rects;
 } renderState;
 
-void ClearScene() {
-    renderState.rects.clear();
-    physicsState.pointMasses.clear();
-    physicsState.springs.clear();
-    physicsState.pointCharges.clear();
-    physicsState.nucleons.clear();
-}
-
-void AddToScene(int neutronCount, int protonCount, int electronCount) {
+void AddToState(int neutronCount, int protonCount, int electronCount) {
     for (int i = 0; i < neutronCount; ++i) {
         Nucleon n{ 200.0f, glm::vec3{ (float)i, 0.0f, 0.0f }, glm::vec3{ 0.0f }, 0.0f };
 
@@ -189,47 +181,7 @@ void AddToScene(int neutronCount, int protonCount, int electronCount) {
 }
 
 int main() {
-    // Carbon Nucleus
-    for (int i = 0; i < 6; ++i) {
-        Nucleon p{ 200.0f, glm::vec3{ (float)i, 0.0f, 0.0f}, glm::vec3{ 0.0f }, 1.0f};
-        Nucleon n{ 200.0f, glm::vec3{ (float)i, 1.0f, 0.0f }, glm::vec3{ 0.0f }, 0.0f };
-
-        physicsState.nucleons.push_back(p);
-        physicsState.nucleons.push_back(n);
-    }
-
-    // Helium+ Ion
-    //Nucleon p1{ 200.0f, glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f }, 1.0f };
-    //Nucleon p2{ 200.0f, glm::vec3{ 1.0f, 1.0f, 0.0f }, glm::vec3{ 0.0f }, 1.0f };
-    //Nucleon n1{ 200.0f, glm::vec3{ 0.0f, 1.0f, 0.0f }, glm::vec3{ 0.0f }, 0.0f };
-    //Nucleon n2{ 200.0f, glm::vec3{ 1.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f }, 0.0f };
-
-    //nucleons.push_back(p1);
-    //nucleons.push_back(p2);
-    //nucleons.push_back(n1);
-    //nucleons.push_back(n2);
-
-    //PointCharge e1{ 0.1f, glm::vec3{ -2.0f, -2.0f, -2.0f }, glm::vec3{ -2.0f, 0.0f, 0.0f }, -1.0f };
-
-    //pointCharges.push_back(e1);
-
-    // Alpha Particle
-    //Nucleon p1{ 1.0f, glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f }, 1.0f };
-    //Nucleon p2{ 1.0f, glm::vec3{ 1.0f, 1.0f, 0.0f }, glm::vec3{ 0.0f }, 1.0f };
-    //Nucleon n1{ 1.0f, glm::vec3{ 0.0f, 1.0f, 0.0f }, glm::vec3{ 0.0f }, 0.0f };
-    //Nucleon n2{ 1.0f, glm::vec3{ 1.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f }, 0.0f };
-
-    //nucleons.push_back(p1);
-    //nucleons.push_back(p2);
-    //nucleons.push_back(n1);
-    //nucleons.push_back(n2);
-
-    // lightly charged particle orbitting heavily charged particle
-    //PointCharge pc1{ 1.0f, glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 0.0f }, 10.0f };
-    //PointCharge pc2{ 1.0f, glm::vec3{ 2.0f, 2.0f, 2.0f }, glm::vec3{ 2.0f, 0.0f, 0.0f }, -1.0f };
-
-    //physicsState.pointCharges.push_back(pc1);
-    //physicsState.pointCharges.push_back(pc2);
+    AddToState(2, 2, 1);
 
     // 3 point masses bound by springs
     //PointMass pm1{ 10.0f, glm::vec3{ -4.5f, -2.0f, 1.0f }, glm::vec3{ 0.0f } };
@@ -414,7 +366,6 @@ int main() {
 
     const size_t physicsStateQueueSize = 4;
     std::array<PhysicsState, physicsStateQueueSize> physicsStateQueue;
-    physicsStateQueue[0] = physicsState;
     int mostRecentPhysicsState = 0;
 
     int newSceneProtonCount = 2;
@@ -426,10 +377,22 @@ int main() {
     float dt = 1.0f / 1000.0f;
 
     bool closePhysicsThread = false;
+    bool reloadScene = true;
 
     std::thread physicsThread{ [&]() {
         while (!closePhysicsThread) {
             TimeScope physicsTimeScope{ &physicsTime };
+
+            if (reloadScene) {
+                for (int i = 0; i < physicsStateQueueSize; ++i) {
+                    physicsStateQueue[i] = PhysicsState{ };
+                }
+
+                physicsStateQueue[0] = physicsState;
+                mostRecentPhysicsState = 0;
+
+                reloadScene = false;
+            }
 
             PhysicsState state = physicsStateQueue[mostRecentPhysicsState];
 
@@ -651,13 +614,22 @@ int main() {
 
             ImGui::Separator();
 
-            if (ImGui::Button("Clear")) ClearScene();
-
             ImGui::DragInt("Protons", &newSceneProtonCount, 0.1f, 0, 100);
             ImGui::DragInt("Neutrons", &newSceneNeutronCount, 0.1f, 0, 100);
             ImGui::DragInt("Electrons", &newSceneElectronCount, 0.1f, 0, 100);
 
-            if (ImGui::Button("Add")) AddToScene(newSceneNeutronCount, newSceneProtonCount, newSceneElectronCount);
+            if (ImGui::Button("Clear")) {
+                physicsState = PhysicsState{ };
+                reloadScene = true;
+            }
+
+            ImGui::SameLine();
+
+            if (ImGui::Button("Load")) {
+                physicsState = PhysicsState{ };
+                AddToState(newSceneNeutronCount, newSceneProtonCount, newSceneElectronCount);
+                reloadScene = true;
+            }
         } ImGui::End();
 
         glm::ivec2 newViewportSize{ };
