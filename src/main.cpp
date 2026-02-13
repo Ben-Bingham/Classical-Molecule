@@ -148,37 +148,42 @@ void MoveCamera(Camera& camera, GLFWwindow* window, float dt, const glm::ivec2& 
     }
 }
 
-std::vector<Rect> rects;
-std::vector<PointMass> pointMasses;
-std::vector<Spring> springs;
-std::vector<PointCharge> pointCharges;
-std::vector<Nucleon> nucleons;
+struct PhysicsState {
+    std::vector<PointMass> pointMasses;
+    std::vector<Spring> springs;
+    std::vector<PointCharge> pointCharges;
+    std::vector<Nucleon> nucleons;
+} physicsState;
+
+struct RenderState {
+    std::vector<Rect> rects;
+} renderState;
 
 void ClearScene() {
-    rects.clear();
-    pointMasses.clear();
-    springs.clear();
-    pointCharges.clear();
-    nucleons.clear();
+    renderState.rects.clear();
+    physicsState.pointMasses.clear();
+    physicsState.springs.clear();
+    physicsState.pointCharges.clear();
+    physicsState.nucleons.clear();
 }
 
 void AddToScene(int neutronCount, int protonCount, int electronCount) {
     for (int i = 0; i < neutronCount; ++i) {
         Nucleon n{ 200.0f, glm::vec3{ (float)i, 0.0f, 0.0f }, glm::vec3{ 0.0f }, 0.0f };
 
-        nucleons.push_back(n);
+        physicsState.nucleons.push_back(n);
     }
 
     for (int i = 0; i < protonCount; ++i) {
         Nucleon p{ 200.0f, glm::vec3{ (float)i, 1.0f, 0.0f}, glm::vec3{ 0.0f }, 1.0f };
 
-        nucleons.push_back(p);
+        physicsState.nucleons.push_back(p);
     }
 
     for (int i = 0; i < electronCount; ++i) {
         PointCharge e{ 0.1f, glm::vec3{ (float)i, -1.0f, -2.0f }, glm::vec3{ 0.0f }, -1.0f };
 
-        pointCharges.push_back(e);
+        physicsState.pointCharges.push_back(e);
     }
 }
 
@@ -188,8 +193,8 @@ int main() {
         Nucleon p{ 200.0f, glm::vec3{ (float)i, 0.0f, 0.0f}, glm::vec3{ 0.0f }, 1.0f};
         Nucleon n{ 200.0f, glm::vec3{ (float)i, 1.0f, 0.0f }, glm::vec3{ 0.0f }, 0.0f };
 
-        nucleons.push_back(p);
-        nucleons.push_back(n);
+        physicsState.nucleons.push_back(p);
+        physicsState.nucleons.push_back(n);
     }
 
     // Helium+ Ion
@@ -425,7 +430,7 @@ int main() {
         {
             TimeScope physicsTimeScope{ &physicsTime };
 
-            for (auto& spring : springs) {
+            for (auto& spring : physicsState.springs) {
                 float deltaX = spring.length - spring.restLength;
 
                 float force = deltaX * spring.k;
@@ -448,11 +453,11 @@ int main() {
 
             std::vector<PointCharge*> chargedParticles{ };
 
-            for (auto& pc : pointCharges) {
+            for (auto& pc : physicsState.pointCharges) {
                 chargedParticles.push_back(&pc);
             }
 
-            for (auto& n : nucleons) {
+            for (auto& n : physicsState.nucleons) {
                 if (n.charge == 0.0f) continue;
 
                 chargedParticles.push_back(&n);
@@ -477,16 +482,16 @@ int main() {
                 }
             }
 
-            for (auto& c : pointCharges) {
+            for (auto& c : physicsState.pointCharges) {
                 c.position += c.velocity * dt;
             }
 
-            for (int i = 0; i < nucleons.size(); ++i) {
-                for (int j = 0; j < nucleons.size(); ++j) {
+            for (int i = 0; i < physicsState.nucleons.size(); ++i) {
+                for (int j = 0; j < physicsState.nucleons.size(); ++j) {
                     if (i == j) continue;
 
-                    PointCharge& n1 = nucleons[i];
-                    PointCharge& n2 = nucleons[j];
+                    PointCharge& n1 = physicsState.nucleons[i];
+                    PointCharge& n2 = physicsState.nucleons[j];
 
                     float distance = glm::distance(n1.position, n2.position);
 
@@ -511,7 +516,7 @@ int main() {
                 }
             }
 
-            for (auto& n : nucleons) {
+            for (auto& n : physicsState.nucleons) {
                 n.position += n.velocity * dt;
             }
         }
@@ -526,9 +531,9 @@ int main() {
 
             solidShader.Bind();
             
-            rects.clear();
+            renderState.rects.clear();
 
-            for (const auto& spring : springs) {
+            for (const auto& spring : physicsState.springs) {
                 glm::vec3 end1Pos = spring.end1->position;
                 glm::vec3 end2Pos = spring.end2->position;
 
@@ -551,17 +556,17 @@ int main() {
                 Transform t{ center, glm::vec3{ spring.length, 0.3f, 0.3f }, glm::angleAxis(-angle, cross)};
 
                 Rect r{ t, glm::vec3{ 1.0f, 0.0f, 0.0f } };
-                rects.push_back(r);
+                renderState.rects.push_back(r);
             }
 
-            for (const auto& pm : pointMasses) {
+            for (const auto& pm : physicsState.pointMasses) {
                 Transform t{ pm.position, glm::vec3{ 0.6f } };
 
                 Rect r{ t, glm::vec3{ 0.0f } };
-                rects.push_back(r);
+                renderState.rects.push_back(r);
             }
 
-            for (const auto& pc : pointCharges) {
+            for (const auto& pc : physicsState.pointCharges) {
                 Transform t{ pc.position, glm::vec3{ 0.4f } };
 
                 glm::vec3 color;
@@ -570,10 +575,10 @@ int main() {
                 else { color = glm::vec3{ 1.0f, 0.0f, 0.0f }; }
 
                 Rect r{ t, color };
-                rects.push_back(r);
+                renderState.rects.push_back(r);
             }
 
-            for (const auto& n : nucleons) {
+            for (const auto& n : physicsState.nucleons) {
                 Transform t{ n.position, glm::vec3{ 0.5f } };
 
                 glm::vec3 color;
@@ -583,10 +588,10 @@ int main() {
                 else { color = glm::vec3{ 1.0f, 0.0f, 1.0f }; }
 
                 Rect r{ t, color };
-                rects.push_back(r);
+                renderState.rects.push_back(r);
             }
 
-            for (auto& r : rects) {
+            for (auto& r : renderState.rects) {
                 solidShader.SetVec3("color", r.color);
 
                 glm::mat4 projection = glm::perspective(glm::radians(camera.fov), (float)rendererTarget.GetSize().x / (float)rendererTarget.GetSize().y, camera.nearPlane, camera.farPlane);
