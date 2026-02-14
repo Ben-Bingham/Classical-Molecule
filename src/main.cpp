@@ -262,7 +262,7 @@ int main() {
 
     glm::ivec2 windowSize{ 1600, 900 };
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
-    GLFWwindow* window = glfwCreateWindow(windowSize.x, windowSize.y, "Classical Molecule", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(windowSize.x, windowSize.y, "Classical Atom", nullptr, nullptr);
 
     if (!window) {
         std::cout << "ERROR: Failed to create window." << std::endl;
