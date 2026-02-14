@@ -42,16 +42,6 @@ struct PointCharge : PointMass {
 
 struct Nucleon : PointCharge { };
 
-struct Spring {
-    float k;
-    float length;
-    float restLength;
-    float damp;
-
-    PointMass* end1;
-    PointMass* end2;
-};
-
 void glfwErrorCallback(int error, const char* description) {
     std::cout << "ERROR: GLFW has thrown an error: " << std::endl;
     std::cout << description << std::endl;
@@ -151,7 +141,6 @@ void MoveCamera(Camera& camera, GLFWwindow* window, float dt, const glm::ivec2& 
 
 struct PhysicsState {
     std::vector<PointMass> pointMasses;
-    std::vector<Spring> springs;
     std::vector<PointCharge> pointCharges;
     std::vector<Nucleon> nucleons;
 } physicsState;
@@ -208,51 +197,6 @@ void AddToState(int neutronCount, int protonCount, int electronCount) {
 
 int main() {
     AddToState(2, 2, 1);
-
-    // 3 point masses bound by springs
-    //PointMass pm1{ 10.0f, glm::vec3{ -4.5f, -2.0f, 1.0f }, glm::vec3{ 0.0f } };
-    //PointMass pm2{ 2.0f, glm::vec3{ 5.5f, 1.0f, -3.0f }, glm::vec3{ 0.0f } };
-    //PointMass pm3{ 4.0f, glm::vec3{ 3.0f, -5.0f, -6.0f }, glm::vec3{ 0.0f } };
-
-    //physicsState.pointMasses.push_back(pm1);
-    //physicsState.pointMasses.push_back(pm2);
-    //physicsState.pointMasses.push_back(pm3);
-
-    //Spring spring1{ 0.5f, 2.5f, 5.0f, 0.1f, &physicsState.pointMasses[0], &physicsState.pointMasses[1] };
-    //Spring spring2{ 0.5f, 2.5f, 6.5f, 0.1f, &physicsState.pointMasses[1], &physicsState.pointMasses[2] };
-    //Spring spring3{ 0.5f, 2.5f, 3.5f, 0.1f, &physicsState.pointMasses[0], &physicsState.pointMasses[2] };
-
-    //physicsState.springs.push_back(spring1);
-    //physicsState.springs.push_back(spring2);
-    //physicsState.springs.push_back(spring3);
-
-    // Web of point masses
-    //int n = 4;
-    //for (int x = 0; x < n * 2; x += 2) {
-    //    for (int y = 0; y < n * 2; y += 2) {
-    //        PointMass pm{ 10.0f, glm::vec3{ (float)x, (float)y, 0.0f }, glm::vec3{ 0.0f } };
-
-    //        pointMasses.push_back(pm);
-    //    }
-    //}
-
-    //for (int i = 0; i < pointMasses.size(); ++i) {
-    //    for (int j = 0; j < pointMasses.size(); ++j) {
-    //        if (i == j) continue;
-
-    //        int ix = i % n;
-    //        int iy = i / n;
-
-    //        int jx = j % n;
-    //        int jy = j / n;
-
-    //        if (glm::abs(ix - jx) > 1) continue;
-    //        if (glm::abs(iy - jy) > 1) continue;
-
-    //        Spring spring{ 0.5f, 2.5f, 2.0f, 0.1f, &pointMasses[i], &pointMasses[j] };
-    //        springs.push_back(spring);
-    //    }
-    //}
 
     glfwSetErrorCallback(glfwErrorCallback);
 
@@ -422,27 +366,6 @@ int main() {
 
             PhysicsState state = physicsStateQueue[mostRecentPhysicsState];
 
-            for (auto& spring : state.springs) {
-                float deltaX = spring.length - spring.restLength;
-
-                float force = deltaX * spring.k;
-
-                glm::vec3 end1ToEnd2 = spring.end1->position - spring.end2->position;
-                float springLength = glm::length(end1ToEnd2);
-                end1ToEnd2 = glm::normalize(end1ToEnd2);
-
-                glm::vec3 end1Accel = (-end1ToEnd2 * force - spring.end1->velocity * spring.damp) / spring.end1->mass;
-                glm::vec3 end2Accel = (end1ToEnd2 * force - spring.end2->velocity * spring.damp) / spring.end2->mass;
-
-                spring.end1->velocity += end1Accel * dt;
-                spring.end2->velocity += end2Accel * dt;
-
-                spring.end1->position += spring.end1->velocity * dt;
-                spring.end2->position += spring.end2->velocity * dt;
-
-                spring.length = springLength;
-            }
-
             std::vector<PointCharge*> chargedParticles{ };
 
             for (auto& pc : state.pointCharges) {
@@ -542,32 +465,6 @@ int main() {
             solidShader.Bind();
             
             renderState.rects.clear();
-
-            for (const auto& spring : physState.springs) {
-                glm::vec3 end1Pos = spring.end1->position;
-                glm::vec3 end2Pos = spring.end2->position;
-
-                glm::vec3 center = (end1Pos + end2Pos) / 2.0f;
-
-                glm::vec3 v1 = end1Pos;
-                glm::vec3 v2 = end2Pos;
-
-                v1 = end1Pos - end2Pos;
-                v2 = glm::vec3{ 1.0f, 0.0f, 0.0f };
-
-                v1 = glm::normalize(v1);
-                v2 = glm::normalize(v2);
-
-                glm::vec3 cross = glm::cross(v1, v2);
-                cross = glm::normalize(cross);
-
-                float angle = glm::acos(glm::dot(v1, v2));
-
-                Transform t{ center, glm::vec3{ spring.length, 0.3f, 0.3f }, glm::angleAxis(-angle, cross)};
-
-                Rect r{ t, glm::vec3{ 1.0f, 0.0f, 0.0f } };
-                renderState.rects.push_back(r);
-            }
 
             for (const auto& pm : physState.pointMasses) {
                 Transform t{ pm.position, glm::vec3{ 0.6f } };
